@@ -44,33 +44,32 @@ def generate_daily_plan(day, destination, budget, attractions, previous_day_plan
         model=MODEL_NAME, messages=[{"role": "user", "content": prompt}]
     )
     return response["message"]["content"]
-    return response["message"]["content"]
-    # STEP 4.2: Daily Plan Logic with State Awareness
-    # We include previous_day_plan in the prompt so the model remembers context
-    prompt = f"Plan Day {day} in {destination} ({budget}). Focus on these attractions: {attractions}. Previous context: {previous_day_plan}. Create a detailed schedule."
-
-    response = ollama.chat(
-        model=MODEL_NAME, messages=[{"role": "user", "content": prompt}]
-    )
-    return response["message"]["content"]
 
 
-# STEP 5: Execution Loop
-print("\n--- Generatating Itinerary... ---")
+# STEP 5: Execution & File Save
+output_filename = f"Itinerary_{destination}_{num_days}_Days.txt"
 
-# First, get the high-level theme
-theme_data = generate_theme_and_attractions(destination, budget)
-print(f"\n[Theme & Overview]:\n{theme_data}\n")
+with open(output_filename, "w", encoding="utf-8") as file:
+    # Helper function to print to screen AND write to file
+    def save_and_print(text):
+        print(text)
+        file.write(text + "\n")
 
-# Initialize state variable
-previous_day_plan = "Start of trip"
+    save_and_print(f"--- Generating Itinerary for {destination} ---")
 
-# Loop through each day
-for day in range(1, num_days + 1):
-    print(f"--- Planning Day {day} ---")
-    # Pass 'previous_day_plan' to maintain continuity
-    daily_plan = generate_daily_plan(
-        day, destination, budget, theme_data, previous_day_plan
-    )
-    print(daily_plan + "\n")
-    previous_day_plan = daily_plan  # Update history for the next loop
+    # Generate Theme
+    theme_data = generate_theme_and_attractions(destination, budget)
+    save_and_print(f"\n[Theme & Overview]:\n{theme_data}\n")
+
+    previous_day_plan = "Start of trip"
+
+    # Loop through days
+    for day in range(1, num_days + 1):
+        save_and_print(f"--- Planning Day {day} ---")
+        daily_plan = generate_daily_plan(
+            day, destination, budget, theme_data, previous_day_plan
+        )
+        save_and_print(daily_plan + "\n")
+        previous_day_plan = daily_plan  # Update context
+
+    print(f"\n✅ Itinerary successfully saved to: {output_filename}")
