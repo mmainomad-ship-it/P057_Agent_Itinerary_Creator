@@ -14,13 +14,6 @@ budget = input("What is your budget (e.g., mid-range, luxury)? ")
 # STEP 3: Function Definitions
 # Define the function to generate the overall theme and list of attractions
 def generate_theme_and_attractions(destination, budget):
-    pass  # Body to be added in Step 4
-
-
-# Define the function to generate a specific day's plan using context from previous steps
-def generate_daily_plan(day, destination, budget, attractions, previous_day_plan):
-    pass  # Body to be added in Step 4
-    # STEP 4.1: Theme Generation Logic
     # Construct a prompt to get the high-level plan
     prompt = f"Create a travel theme and a list of 5-7 top attractions for a {budget} trip to {destination}. Return ONLY the theme and the list."
 
@@ -28,6 +21,29 @@ def generate_daily_plan(day, destination, budget, attractions, previous_day_plan
     response = ollama.chat(
         model=MODEL_NAME, messages=[{"role": "user", "content": prompt}]
     )
+
+    # CRITICAL: This line must be indented exactly like this
+    return response["message"]["content"]
+
+
+# Define the function to generate a specific day's plan using context from previous steps
+def generate_daily_plan(day, destination, budget, attractions, previous_day_plan):
+    # Refined prompt to force a schedule format
+    prompt = f"""
+    Context: {attractions}
+    Previous Day: {previous_day_plan}
+    Task: Create a detailed itinerary for Day {day} in {destination}.
+    Format:
+    - Morning: [Activity]
+    - Afternoon: [Activity]
+    - Evening: [Activity]
+    Constraint: Do NOT repeat activities from the Previous Day.
+    """
+
+    response = ollama.chat(
+        model=MODEL_NAME, messages=[{"role": "user", "content": prompt}]
+    )
+    return response["message"]["content"]
     return response["message"]["content"]
     # STEP 4.2: Daily Plan Logic with State Awareness
     # We include previous_day_plan in the prompt so the model remembers context
